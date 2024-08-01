@@ -21,8 +21,8 @@ const validateForm = (req, res) => {
     formSchema.validate(formData)
         .then((valid) => {
             if (valid)
-                res.status(200).json("Form is valid");
-            console.log("Form is valid");
+                // res.status(200).json("Form is valid");
+                console.log("Form is valid");
         })
         .catch((err) => {
             console.log(err.errors);

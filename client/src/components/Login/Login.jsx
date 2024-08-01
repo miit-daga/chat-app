@@ -47,7 +47,7 @@ const Login = () => {
           actions.resetForm();
 
           axios
-            .post("http://localhost:3000/auth/register", vals, {
+            .post("http://localhost:3000/auth/login", vals, {
               headers: {
                 "Content-Type": "application/json",
               },
@@ -59,6 +59,7 @@ const Login = () => {
                 console.error("Error occurred during the request:", res);
                 return;
               }
+              navigate("/home");
               console.log(res.data);
             })
             .catch((err) => {
