@@ -6,8 +6,9 @@ import * as yup from "yup";
 import TextField from "./TextField.jsx";
 import { useNavigate } from "react-router-dom";
 import { ArrowBackIcon } from "@chakra-ui/icons";
+import axios from "axios";
 
-const SignUp = () => {
+const Register = () => {
   const navigate = useNavigate();
   return (
     <>
@@ -45,26 +46,26 @@ const SignUp = () => {
           // alert(JSON.stringify(values, null, 2));
           const vals = { ...values };
           actions.resetForm();
-          fetch("http://localhost:3000/auth/register", {
-            method: "PORT",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            credentials: "include",
-            body: JSON.stringify(vals),
-          })
-            .catch((err) => {
-              return;
+
+          axios
+            .post("http://localhost:3000/auth/register", vals, {
+              headers: {
+                "Content-Type": "application/json",
+              },
+              withCredentials: true,
             })
             .then((res) => {
-              if (!res || !res.ok || res.status >= 400) {
+              if (!res || !res.data || res.status >= 400) {
+                // Handle error here
+                console.error("Error occurred during the request:", res);
                 return;
               }
-              return res.json();
+              navigate("/home");
+              console.log(res.data);
             })
-            .then((data) => {
-              if (!data) return;
-              console.log(data);
+            .catch((err) => {
+              // Handle error here
+              console.error("Request failed:", err);
             });
         }}
       >
@@ -104,4 +105,4 @@ const SignUp = () => {
   );
 };
 
-export default SignUp;
+export default Register;

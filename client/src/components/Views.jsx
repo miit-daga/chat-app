@@ -2,12 +2,16 @@
 import React from "react";
 import { Routes, Route } from "react-router-dom";
 import Login from "./Login/Login.jsx";
-import Signup from "./Login/Signup.jsx";
+import Register from "./Login/Register.jsx";
+import PrivateRoutes from "./PrivateRoutes.jsx";
 const Views = () => {
   return (
     <Routes>
       <Route path="/" element={<Login></Login>}></Route>
-      <Route path="/register" element={<Signup></Signup>}></Route>
+      <Route path="/register" element={<Register></Register>}></Route>
+      <Route element={<PrivateRoutes />}>
+        <Route path="/home" element={<text>Welcome Home</text>}></Route>
+      </Route>
       <Route path="*" element={<Login></Login>}></Route>
     </Routes>
   );
