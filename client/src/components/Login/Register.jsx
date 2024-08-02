@@ -1,14 +1,17 @@
-import { VStack, Button, ButtonGroup, Heading } from "@chakra-ui/react";
+import { VStack, Button, ButtonGroup, Heading, Text } from "@chakra-ui/react";
 // eslint-disable-next-line no-unused-vars
-import React from "react";
+import React, { useContext } from "react";
 import { Formik, Form } from "formik";
 import * as yup from "yup";
 import TextField from "./TextField.jsx";
 import { useNavigate } from "react-router-dom";
 import { ArrowBackIcon } from "@chakra-ui/icons";
 import axios from "axios";
+import { AccountContext } from "../AccountContext.jsx";
 
 const Register = () => {
+  const [error, setError] = React.useState(null);
+  const { setUser } = useContext(AccountContext);
   const navigate = useNavigate();
   return (
     <>
@@ -55,17 +58,22 @@ const Register = () => {
               withCredentials: true,
             })
             .then((res) => {
-              if (!res || !res.data || res.status >= 400) {
-                // Handle error here
-                console.error("Error occurred during the request:", res);
-                return;
+              if (res.data.loggedIn) {
+                navigate("/home");
+                setUser({ ...res.data });
+                console.log(res.data);
+              } else {
+                setError(
+                  res.data.errorMessage || "An error occurred during login",
+                );
               }
-              navigate("/home");
-              console.log(res.data);
             })
             .catch((err) => {
-              // Handle error here
               console.error("Request failed:", err);
+              setError(
+                err.response?.data?.errorMessage ||
+                  "An error occurred during login",
+              );
             });
         }}
       >
@@ -78,6 +86,9 @@ const Register = () => {
           spacing="1rem"
         >
           <Heading>Sign Up</Heading>
+          <Text as="p" color="red.500">
+            {error}
+          </Text>
           <TextField
             name="username"
             placeholder="Enter your username"

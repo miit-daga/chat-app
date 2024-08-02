@@ -1,13 +1,16 @@
-import { VStack, Button, ButtonGroup, Heading } from "@chakra-ui/react";
+import { VStack, Button, ButtonGroup, Heading, Text } from "@chakra-ui/react";
 // eslint-disable-next-line no-unused-vars
-import React from "react";
+import React, { useContext } from "react";
 import { Formik, Form } from "formik";
 import * as yup from "yup";
 import TextField from "./TextField.jsx";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { AccountContext } from "../AccountContext.jsx";
 
 const Login = () => {
+  const [error, setError] = React.useState(null);
+  const { setUser } = useContext(AccountContext);
   const navigate = useNavigate();
   return (
     <>
@@ -17,29 +20,7 @@ const Login = () => {
           password: "",
         }}
         validationSchema={yup.object({
-          username: yup
-            .string()
-            .required("Username is required")
-            .min(4, "Username must be at least 4 characters")
-            .max(20, "Username must be at most 20 characters"),
-          password: yup
-            .string()
-            .required("Password is required")
-            .min(6, "Password must be at least 6 characters")
-            .max(28, "Password too long")
-            .matches(
-              /[a-z]/,
-              "Password must contain at least one lowercase letter",
-            )
-            .matches(
-              /[A-Z]/,
-              "Password must contain at least one uppercase letter",
-            )
-            .matches(/[0-9]/, "Password must contain at least one digit")
-            .matches(
-              /[\W_]/,
-              "Password must contain at least one special character",
-            ),
+          username: yup.string().required("Username is required"),
         })}
         onSubmit={(values, actions) => {
           // alert(JSON.stringify(values, null, 2));
@@ -54,17 +35,22 @@ const Login = () => {
               withCredentials: true,
             })
             .then((res) => {
-              if (!res || !res.data || res.status >= 400) {
-                // Handle error here
-                console.error("Error occurred during the request:", res);
-                return;
+              if (res.data.loggedIn) {
+                navigate("/home");
+                setUser({ ...res.data });
+                console.log(res.data);
+              } else {
+                setError(
+                  res.data.errorMessage || "An error occurred during login",
+                );
               }
-              navigate("/home");
-              console.log(res.data);
             })
             .catch((err) => {
-              // Handle error here
               console.error("Request failed:", err);
+              setError(
+                err.response?.data?.errorMessage ||
+                  "An error occurred during login",
+              );
             });
         }}
       >
@@ -77,6 +63,9 @@ const Login = () => {
           spacing="1rem"
         >
           <Heading>Log in</Heading>
+          <Text as="p" color="red.500">
+            {error}
+          </Text>
           <TextField
             name="username"
             placeholder="Enter your username"

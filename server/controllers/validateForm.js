@@ -16,18 +16,17 @@ const formSchema = yup.object({
         .matches(/[0-9]/, "Password must contain at least one number")
         .matches(/[\W_]/, "Password must contain at least one special character"),
 });
-const validateForm = (req, res) => {
-    const formData = req.body;
-    formSchema.validate(formData)
-        .then((valid) => {
-            if (valid)
-                // res.status(200).json("Form is valid");
-                console.log("Form is valid");
+
+const validateForm = (req, res, next) => {
+    formSchema.validate(req.body, { abortEarly: false })
+        .then(() => {
+            console.log("Form is valid");
+            next();
         })
-        .catch((err) => {
+        .catch(err => {
             console.log(err.errors);
-            res.status(422).json(err.errors);
+            res.status(422).json({ errors: err.errors });
         });
-}
+};
 
 module.exports = { validateForm };
