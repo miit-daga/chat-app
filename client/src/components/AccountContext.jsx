@@ -21,6 +21,7 @@ const UserContext = ({ children }) => {
       .catch((err) => {
         setUser({ loggedIn: false });
       });
+    // eslint-disable-next-line
   }, [setUser]);
   return (
     <AccountContext.Provider value={{ user, setUser }}>

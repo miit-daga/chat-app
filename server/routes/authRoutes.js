@@ -2,11 +2,12 @@ const express = require('express');
 const { validateForm } = require('../controllers/validateForm.js');
 const router = express.Router();
 const { getLogin, postLogin, handleRegister } = require('../controllers/authController.js');
+const { rateLimiter } = require('../controllers/rateLimiter.js');
 
 router.get('/login', getLogin);
 
-router.post('/login', validateForm, postLogin);
+router.post('/login', validateForm, rateLimiter(60, 10), postLogin);
 
-router.post('/register', validateForm, handleRegister);
+router.post('/register', validateForm, rateLimiter(60, 3), handleRegister);
 
 module.exports = router;
