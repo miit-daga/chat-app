@@ -30,17 +30,8 @@ const Sidebar = () => {
         </HStack>
         <Divider />
         <VStack as={TabList}>
-          {/* <HStack as={Tab}>
-          <Circle bg="red.500" w="10px" h="10px" />
-          <Text>John Smith</Text>
-        </HStack>
-        <HStack as={Tab}>
-          <Circle bg="green.400" w="10px" h="10px" />
-          <Text>John Smith</Text>
-        </HStack> */}
           {friendList.map((friend) => (
-            // eslint-disable-next-line react/jsx-key
-            <HStack as={Tab}>
+            <HStack as={Tab} key={`friend:${friend.username}`}>
               <Circle
                 bg={friend.connected ? "green.400" : "red.500"}
                 w="10px"

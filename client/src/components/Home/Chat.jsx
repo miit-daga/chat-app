@@ -1,15 +1,53 @@
-import { TabPanel, TabPanels, VStack } from "@chakra-ui/react";
-import React, { useContext } from "react";
-import { FriendContext } from "./Home.jsx";
+import { TabPanel, TabPanels, Text, VStack } from "@chakra-ui/react";
+import React, { useContext, useEffect, useRef } from "react";
+import { FriendContext, MessagesContext } from "./Home.jsx";
+import ChatBox from "./ChatBox.jsx";
 
-const Chat = () => {
+const Chat = ({ user }) => {
   const { friendList } = useContext(FriendContext);
+  const { messages } = useContext(MessagesContext);
+  const bottomDiv = useRef(null);
+
+  useEffect(() => {
+    bottomDiv.current?.scrollIntoView({ behavior: "smooth" });
+  });
   return friendList.length > 0 ? (
-    <VStack>
-      <TabPanels>
-        <TabPanel>Friend one</TabPanel>
-        <TabPanel>Friend two</TabPanel>
+    <VStack h="100%" justify="end">
+      <TabPanels overflowY="scroll">
+        {friendList.map((friend) => (
+          <VStack
+            flexDir="column-reverse"
+            as={TabPanel}
+            key={`chat:${friend.username}`}
+            w="100%"
+          >
+            <div ref={bottomDiv} />
+            {messages
+              .filter(
+                (msg) => msg.to === friend.user || msg.from === friend.user,
+              )
+              .map((message, idx) => (
+                <Text
+                  m={
+                    message.to === friend.user
+                      ? "1rem 0 0 auto !important"
+                      : "1rem auto 0 0 !important"
+                  }
+                  maxWidth="50%"
+                  key={`msg=${friend.username}.${idx}`}
+                  fontSize="lg"
+                  bg={message.to === friend.user ? "blue.100" : "gray.100"}
+                  borderRadius="10px"
+                  p="0.5rem 1rem"
+                  color="gray.800"
+                >
+                  {message.content}
+                </Text>
+              ))}
+          </VStack>
+        ))}
       </TabPanels>
+      <ChatBox user={user} />
     </VStack>
   ) : (
     <VStack

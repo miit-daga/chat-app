@@ -46,7 +46,7 @@ const Login = () => {
               }
             })
             .catch((err) => {
-              console.error("Request failed:", err);
+              console.log("Request failed:", err);
               setError(
                 err.response?.data?.errorMessage ||
                   "An error occurred during login",

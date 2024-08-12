@@ -1,5 +1,6 @@
 import {
   Button,
+  Heading,
   Modal,
   ModalBody,
   ModalCloseButton,
@@ -8,10 +9,12 @@ import {
   ModalHeader,
   ModalOverlay,
 } from "@chakra-ui/react";
-import React from "react";
+import React, { useContext } from "react";
 import TextField from "../TextField.jsx";
 import { Form, Formik } from "formik";
 import * as yup from "yup";
+import socket from "../../socket.js";
+import { FriendContext } from "./Home.jsx";
 
 const friendSchema = yup.object({
   friendName: yup
@@ -22,8 +25,14 @@ const friendSchema = yup.object({
 });
 
 const AddFriendModal = ({ isOpen, onClose }) => {
+  const [error, setError] = React.useState("");
+  const handleClose = () => {
+    setError("");
+    onClose();
+  };
+  const { setFriendList } = useContext(FriendContext);
   return (
-    <Modal isOpen={isOpen} onClose={onClose} isCentered>
+    <Modal isOpen={isOpen} onClose={handleClose} isCentered>
       <ModalOverlay />
       <ModalContent>
         <ModalHeader>Add a friend</ModalHeader>
@@ -31,16 +40,31 @@ const AddFriendModal = ({ isOpen, onClose }) => {
         <Formik
           initialValues={{ friendName: "" }}
           onSubmit={(values, actions) => {
-            onClose();
-            alert(JSON.stringify(values, null, 2));
-            actions.resetForm();
+            socket.emit(
+              "add_friend",
+              values.friendName,
+              ({ errorMsg, done, newFriend }) => {
+                if (done) {
+                  setFriendList((prevFriendList) => [
+                    newFriend,
+                    ...prevFriendList,
+                  ]);
+                  handleClose();
+                  return;
+                }
+                setError(errorMsg);
+              },
+            );
           }}
           validationSchema={friendSchema}
         >
           <Form>
             <ModalBody>
+              <Heading as="p" color="red.500" textAlign="center" fontSize="xl">
+                {error}
+              </Heading>
               <TextField
-                label="Friend name"
+                label="Friend's name"
                 placeholder="Enter friend's username."
                 autoComplete="off"
                 name="friendName"

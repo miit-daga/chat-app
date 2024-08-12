@@ -1,14 +1,15 @@
 const express = require('express');
 const { Server } = require('socket.io');
 const app = express();
-const server = require('http').createServer(app);
+const httpserver = require('http').createServer(app);
 const helmet = require('helmet');
 const cors = require('cors');
 const authRouter = require('./routes/authRoutes.js');
 const { sessionMiddleware, wrap, corsConfig } = require('./controllers/serverController.js');
-const { authorizeUser } = require('./controllers/socketController.js');
+const { authorizeUser, initializeUser, addFriend, onDisconnect, dm } = require('./controllers/socketController.js');
 
-const io = new Server(server, {
+
+const io = new Server(httpserver, {
     cors: corsConfig
 })
 app.use(helmet());
@@ -24,10 +25,13 @@ io.use(wrap(sessionMiddleware));
 io.use(authorizeUser)
 io.on('connect', (socket) => {
     // console.log(socket.request.session.user.username);
-    console.log(socket.id);
-    console.log("UserId:", socket.user.userId);
+    initializeUser(socket)
+    socket.on("add_friend", (friendName, cb) => {
+        addFriend(socket, friendName, cb)
+    })
+    socket.on("dm",(message)=>dm(socket,message))
+    socket.on('disconnect', () => onDisconnect(socket))
 });
-
-server.listen(3000, () => {
+httpserver.listen(3000, () => {
     console.log('Server is running on port 3000');
 })

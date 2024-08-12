@@ -19,7 +19,7 @@ const sessionMiddleware = session({
 });
 
 const wrap = (expressMiddleware) => {
-   return (socket, next) => expressMiddleware(socket.request, {}, next)
+    return (socket, next) => expressMiddleware(socket.request, {}, next)
 }
 
 const corsConfig = {

@@ -1,6 +1,7 @@
 const pool = require('../db.js');
 const bcrypt = require('bcrypt');
 const { v4: uuidv4 } = require('uuid');
+const redisClient = require('../redis.js'); // Adjust the path as necessary
 
 module.exports.getLogin = (req, res) => {
     if (req.session.user && req.session.user.username) {
@@ -21,7 +22,7 @@ module.exports.postLogin = async (req, res) => {
                 id: potentialLogin.rows[0].id,
                 userId: potentialLogin.rows[0].userid
             };
-            return res.json({ loggedIn: true, username: potentialLogin.rows[0].username });
+            return res.json({ loggedIn: true, username: req.session.user.username });
         } else {
             console.log("ERROR!!!!!");
             return res.json({ loggedIn: false, errorMessage: "Wrong username or password" });
@@ -43,7 +44,7 @@ module.exports.handleRegister = async (req, res) => {
             id: newUserQuery.rows[0].id,
             userId: newUserQuery.rows[0].userid
         };
-        return res.json({ loggedIn: true, username: req.body.username });
+        return res.json({ loggedIn: true, username: req.session.user.username });
     } else {
         console.log("ERROR!!!!!");
         return res.json({ loggedIn: false, errorMessage: "Username taken" });
