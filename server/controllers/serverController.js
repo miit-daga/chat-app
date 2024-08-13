@@ -23,7 +23,7 @@ const wrap = (expressMiddleware) => {
 }
 
 const corsConfig = {
-    origin: "http://localhost:5173",
+    origin: "process.env.CLIENT_URL",
     credentials: true,
     "Access-Control-Allow-Origin": "http://localhost:5173",
     "Access-Control-Allow-Credentials": true,

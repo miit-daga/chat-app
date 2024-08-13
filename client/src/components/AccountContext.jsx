@@ -8,8 +8,10 @@ const UserContext = ({ children }) => {
   const [user, setUser] = useState({ loggedIn: null });
   const navigate = useNavigate();
   useEffect(() => {
-    axios
-      .get("http://localhost:3000/auth/login", { withCredentials: true })
+    axios // eslint-disable-next-line no-undef
+      .get(`${process.env.REACT_APP_SERVER_URL}/auth/login`, {
+        withCredentials: true,
+      })
       .then((res) => {
         if (!res || !res.data || res.status >= 400) {
           setUser({ loggedIn: false });

@@ -27,8 +27,8 @@ const Login = () => {
           const vals = { ...values };
           actions.resetForm();
 
-          axios
-            .post("http://localhost:3000/auth/login", vals, {
+          axios // eslint-disable-next-line no-undef
+            .post(`${process.env.REACT_APP_SERVER_URL}/auth/login`, vals, {
               headers: {
                 "Content-Type": "application/json",
               },

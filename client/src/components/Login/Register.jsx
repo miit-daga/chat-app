@@ -50,8 +50,8 @@ const Register = () => {
           const vals = { ...values };
           actions.resetForm();
 
-          axios
-            .post("http://localhost:3000/auth/register", vals, {
+          axios // eslint-disable-next-line no-undef
+            .post(`${process.env.REACT_APP_SERVER_URL}/auth/register`, vals, {
               headers: {
                 "Content-Type": "application/json",
               },
