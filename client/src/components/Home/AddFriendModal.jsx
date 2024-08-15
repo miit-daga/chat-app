@@ -13,8 +13,7 @@ import React, { useContext } from "react";
 import TextField from "../TextField.jsx";
 import { Form, Formik } from "formik";
 import * as yup from "yup";
-import socket from "../../socket.js";
-import { FriendContext } from "./Home.jsx";
+import { FriendContext, SocketContext } from "./Home.jsx";
 
 const friendSchema = yup.object({
   friendName: yup
@@ -31,6 +30,7 @@ const AddFriendModal = ({ isOpen, onClose }) => {
     onClose();
   };
   const { setFriendList } = useContext(FriendContext);
+  const { socket } = React.useContext(SocketContext);
   return (
     <Modal isOpen={isOpen} onClose={handleClose} isCentered>
       <ModalOverlay />
@@ -40,21 +40,25 @@ const AddFriendModal = ({ isOpen, onClose }) => {
         <Formik
           initialValues={{ friendName: "" }}
           onSubmit={(values, actions) => {
-            socket.emit(
-              "add_friend",
-              values.friendName,
-              ({ errorMsg, done, newFriend }) => {
-                if (done) {
-                  setFriendList((prevFriendList) => [
-                    newFriend,
-                    ...prevFriendList,
-                  ]);
-                  handleClose();
-                  return;
-                }
-                setError(errorMsg);
-              },
-            );
+            if (socket && socket.connected) {
+              socket.emit(
+                "add_friend",
+                values.friendName,
+                ({ errorMsg, done, newFriend }) => {
+                  if (done) {
+                    setFriendList((prevFriendList) => [
+                      newFriend,
+                      ...prevFriendList,
+                    ]);
+                    handleClose();
+                    return;
+                  }
+                  setError(errorMsg);
+                },
+              );
+            }else{
+              setError("Socket is not connected, please try again later.");
+            }
           }}
           validationSchema={friendSchema}
         >

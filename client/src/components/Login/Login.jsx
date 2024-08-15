@@ -1,5 +1,4 @@
 import { VStack, Button, ButtonGroup, Heading, Text } from "@chakra-ui/react";
-// eslint-disable-next-line no-unused-vars
 import React, { useContext } from "react";
 import { Formik, Form } from "formik";
 import * as yup from "yup";
@@ -23,21 +22,25 @@ const Login = () => {
           username: yup.string().required("Username is required"),
         })}
         onSubmit={(values, actions) => {
-          // alert(JSON.stringify(values, null, 2));
           const vals = { ...values };
           actions.resetForm();
 
-          axios // eslint-disable-next-line no-undef
-            .post(`${process.env.REACT_APP_SERVER_URL}/auth/login`, vals, {
-              headers: {
-                "Content-Type": "application/json",
+          axios
+            .post(
+              `${import.meta.env.VITE_REACT_APP_SERVER_URL}/auth/login`,
+              vals,
+              {
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                withCredentials: true,
               },
-              withCredentials: true,
-            })
+            )
             .then((res) => {
               if (res.data.loggedIn) {
                 navigate("/home");
                 setUser({ ...res.data });
+                localStorage.setItem("token", res.data.token);
                 console.log(res.data);
               } else {
                 setError(

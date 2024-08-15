@@ -6,5 +6,10 @@
     "editor.formatOnSaveMode": "file", // required to format on save
     "files.autoSave": "afterDelay", // optional but recommended
     "files.autoSaveDelay": 500,
-    "vs-code-prettier-eslint.prettierLast": false // set as "true" to run 'prettier' last not first
+    "vs-code-prettier-eslint.prettierLast": false,
+    "cSpell.words": [
+        "hset",
+        "httpserver",
+        "vals"
+    ] // set as "true" to run 'prettier' last not first
 } 

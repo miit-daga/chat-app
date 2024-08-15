@@ -4,7 +4,7 @@ import Views from "./components/Views.jsx";
 import socket from "./socket.js";
 
 function App() {
-  socket.connect();
+
   return (
     <UserContext>
       <Views />

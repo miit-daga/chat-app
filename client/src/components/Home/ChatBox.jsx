@@ -3,12 +3,12 @@ import { Field, Form, Formik } from "formik";
 import React from "react";
 import * as yup from "yup";
 import { Input } from "@chakra-ui/react";
-import socket from "../../socket.js";
-import { MessagesContext } from "./Home.jsx";
+import { MessagesContext, SocketContext } from "./Home.jsx";
 import { AccountContext } from "../AccountContext.jsx";
 
 const ChatBox = ({ user }) => {
   const { setMessages } = React.useContext(MessagesContext);
+  const { socket } = React.useContext(SocketContext);
   return (
     <Formik
       initialValues={{ message: "" }}
@@ -24,7 +24,6 @@ const ChatBox = ({ user }) => {
         const message = { to: user, from: null, content: values.message };
         socket.emit("dm", message);
         setMessages((prevMessages) => [message, ...prevMessages]);
-        console.log(JSON.stringify(message));
         actions.resetForm();
       }}
     >

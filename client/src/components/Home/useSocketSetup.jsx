@@ -1,12 +1,12 @@
 import { useContext, useEffect } from "react";
-import socket from "../../socket.js";
+import socketFactory from "../../socket.js";
 import { AccountContext } from "../AccountContext.jsx";
 
 const useSocketSetup = (setFriendList, setMessages) => {
-  const { setUser } = useContext(AccountContext);
+  const { setUser, user } = useContext(AccountContext);
 
   useEffect(() => {
-    // Only connect once
+    const socket = socketFactory(user);
     if (!socket.connected) {
       socket.connect();
     }
@@ -38,24 +38,21 @@ const useSocketSetup = (setFriendList, setMessages) => {
       setUser({ loggedIn: false });
     };
 
-    // Set up socket event listeners
     socket.on("friends", handleFriends);
     socket.on("messages", handleMessages);
     socket.on("dm", handleDM);
     socket.on("connected", handleConnected);
     socket.on("connect_error", handleConnectError);
 
-    // Cleanup function to remove event listeners
     return () => {
       socket.off("friends", handleFriends);
       socket.off("messages", handleMessages);
       socket.off("dm", handleDM);
       socket.off("connected", handleConnected);
       socket.off("connect_error", handleConnectError);
+      socket.disconnect();
     };
-  }, [setUser, setFriendList, setMessages]);
- 
-  // Ensure cleanup on unmount
+  }, [setUser, setFriendList, setMessages, user]);
 };
 
 export default useSocketSetup;

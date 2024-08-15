@@ -1,14 +1,18 @@
 const redisClient = require('../redis.js');
+const { jwtVerify } = require('./jwtAuth.js');
+require('dotenv').config();
 
 module.exports.authorizeUser = (socket, next) => {
-    if (!socket.request.session || !socket.request.session.user) {
-        console.log("Bad request!");
-        return next(new Error("Unauthorized"));
-    }
-    next()
+    const token = socket.handshake.auth.token;
+    jwtVerify(token, process.env.JWT_SECRET).then(decoded => {
+        socket.user = { ...decoded };
+        next();
+    }).catch(err => {
+        console.log("Bad request!!", err);
+        next(new Error("Unauthorized"));
+    });
 }
 module.exports.initializeUser = async socket => {
-    socket.user = { ...socket.request.session.user };
     socket.join(socket.user.userId);
     redisClient.hset(
         `user:${socket.user.username}`,
@@ -32,22 +36,24 @@ module.exports.initializeUser = async socket => {
 }
 
 module.exports.addFriend = async (socket, friendName, cb) => {
-    console.log(friendName);
     if (friendName === socket.user.username) {
         cb({ done: false, errorMsg: "Cannot add self as friend!" }); return;
     }
-    const friend = await redisClient.hgetall(`user:${friendName}`)
-    console.log(friend);
-    const currentFriendList = await redisClient.lrange(`friends:${socket.user.username}`, 0, -1)
-    console.log(currentFriendList);
+    const friend = await redisClient.hgetall(`user:${friendName}`);
+    const currentFriendList = await redisClient.lrange(`friends:${socket.user.username}`, 0, -1);
     if (Object.keys(friend).length === 0) {
         cb({ done: false, errorMsg: "Username not valid" }); return;
     }
     if (currentFriendList && currentFriendList.indexOf(`${friendName}.${friend.userId}`) !== -1) {
         cb({ done: false, errorMsg: "Friend already added!" }); return;
     }
-    await redisClient.lpush(`friends:${socket.user.username}`, [friendName, friend.userId].join("."))
-    const newFriend = { username: friendName, user: friend.userId, connected: friend.connected }
+    await redisClient.lpush(`friends:${socket.user.username}`, [friendName, friend.userId].join("."));
+    const friendConnected = await redisClient.hget(`user:${friendName}`, "connected");
+    const newFriend = {
+        username: friendName,
+        user: friend.userId,
+        connected: friendConnected === "true"
+    };
     cb({ done: true, newFriend });
     return;
 }
@@ -77,8 +83,7 @@ module.exports.dm = async (socket, message) => {
     message.from = socket.user.userId;
     //to.from.content
     const messageString = [message.to, message.from, message.content].join(".");
-    console.log("Message string:", messageString);
-    await redisClient.lpush(`chat:${message.to}`, messageString); // Removed extra quotes
-    await redisClient.lpush(`chat:${message.from}`, messageString); // Removed extra quotes
+    await redisClient.lpush(`chat:${message.to}`, messageString);
+    await redisClient.lpush(`chat:${message.from}`, messageString);
     socket.to(message.to).emit("dm", message);
 };

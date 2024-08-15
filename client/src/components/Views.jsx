@@ -1,4 +1,3 @@
-// eslint-disable-next-line no-unused-vars
 import React, { useContext } from "react";
 import { Routes, Route } from "react-router-dom";
 import Login from "./Login/Login.jsx";

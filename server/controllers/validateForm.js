@@ -20,7 +20,6 @@ const formSchema = yup.object({
 const validateForm = (req, res, next) => {
     formSchema.validate(req.body, { abortEarly: false })
         .then(() => {
-            console.log("Form is valid");
             next();
         })
         .catch(err => {

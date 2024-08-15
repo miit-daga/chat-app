@@ -1,52 +1,79 @@
 const pool = require('../db.js');
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 const { v4: uuidv4 } = require('uuid');
-const redisClient = require('../redis.js'); // Adjust the path as necessary
+const redisClient = require('../redis.js');
+const { jwtSign, jwtVerify, getJWT } = require('./jwtAuth.js');
+require('dotenv').config();
 
-module.exports.getLogin = (req, res) => {
-    if (req.session.user && req.session.user.username) {
-        res.json({ loggedIn: true, username: req.session.user.username });
-    } else {
-        res.json({ loggedIn: false });
+module.exports.getLogin = async (req, res) => {
+    try {
+        const token = getJWT(req);
+        if (!token) {
+            return res.status(401).json({ loggedIn: false, errorMessage: "Token not provided" });
+        }
+        await jwtVerify(token, process.env.JWT_SECRET);
+        res.json({ loggedIn: true, token });
+    } catch (err) {
+        console.error("JWT verification failed:", err);
+        res.status(401).json({ loggedIn: false, errorMessage: "Invalid token" });
     }
-}
+};
 
 module.exports.postLogin = async (req, res) => {
-    const potentialLogin = await pool.query("SELECT id, username, passhash, userId FROM users u WHERE u.username = $1", [req.body.username]);
+    try {
+        const { username, password } = req.body;
+        const potentialLogin = await pool.query("SELECT id, username, passhash, userId FROM users WHERE username = $1", [username]);
 
-    if (potentialLogin.rowCount > 0) {
-        const isSamePass = await bcrypt.compare(req.body.password, potentialLogin.rows[0].passhash);
-        if (isSamePass) {
-            req.session.user = {
-                username: potentialLogin.rows[0].username,
-                id: potentialLogin.rows[0].id,
-                userId: potentialLogin.rows[0].userid
-            };
-            return res.json({ loggedIn: true, username: req.session.user.username });
-        } else {
-            console.log("ERROR!!!!!");
-            return res.json({ loggedIn: false, errorMessage: "Wrong username or password" });
+        if (potentialLogin.rowCount === 0) {
+            return res.status(400).json({ loggedIn: false, errorMessage: "Wrong username or password" });
         }
-    } else {
-        console.log("ERROR!!!!!");
-        return res.json({ loggedIn: false, errorMessage: "Wrong username or password" });
+
+        const user = potentialLogin.rows[0];
+        const isSamePass = await bcrypt.compare(password, user.passhash);
+        if (!isSamePass) {
+            return res.status(400).json({ loggedIn: false, errorMessage: "Wrong username or password" });
+        }
+
+        const token = await jwtSign({
+            username: user.username,
+            id: user.id,
+            userId: user.userid
+        }, process.env.JWT_SECRET, { expiresIn: '1day' });
+
+        res.json({ loggedIn: true, token });
+
+    } catch (err) {
+        console.error("Login failed:", err);
+        res.status(500).json({ loggedIn: false, errorMessage: "Try again later!" });
     }
-}
+};
 
 module.exports.handleRegister = async (req, res) => {
-    const existingUser = await pool.query('SELECT * FROM users WHERE username = $1', [req.body.username]);
+    try {
+        const { username, password } = req.body;
+        const existingUser = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
 
-    if (existingUser.rowCount === 0) {
-        const hashedPassword = await bcrypt.hash(req.body.password, 10);
-        const newUserQuery = await pool.query("INSERT INTO users (username, passhash, userId) VALUES ($1, $2,$3) RETURNING username, id,userId", [req.body.username, hashedPassword, uuidv4()]);
-        req.session.user = {
-            username: newUserQuery.rows[0].username,
-            id: newUserQuery.rows[0].id,
-            userId: newUserQuery.rows[0].userid
-        };
-        return res.json({ loggedIn: true, username: req.session.user.username });
-    } else {
-        console.log("ERROR!!!!!");
-        return res.json({ loggedIn: false, errorMessage: "Username taken" });
+        if (existingUser.rowCount > 0) {
+            return res.status(400).json({ loggedIn: false, errorMessage: "Username taken" });
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const newUser = await pool.query(
+            "INSERT INTO users (username, passhash, userId) VALUES ($1, $2, $3) RETURNING username, id, userId",
+            [username, hashedPassword, uuidv4()]
+        );
+
+        const token = await jwtSign({
+            username: newUser.rows[0].username,
+            id: newUser.rows[0].id,
+            userId: newUser.rows[0].userid
+        }, process.env.JWT_SECRET, { expiresIn: '1day' });
+
+        res.json({ loggedIn: true, token });
+
+    } catch (err) {
+        console.error("Registration failed:", err);
+        res.status(500).json({ loggedIn: false, errorMessage: "Try again later!" });
     }
-}
+};
