@@ -33,10 +33,10 @@ const Home = () => {
             setFriendIndex(index);
           }}
         >
-          <GridItem colSpan="2" borderRight="1px solid gray">
+          <GridItem colSpan="3" borderRight="1px solid gray">
             <Sidebar></Sidebar>
           </GridItem>
-          <GridItem colSpan="8" maxHeight="100vh">
+          <GridItem colSpan="7" maxHeight="100vh">
             <MessagesContext.Provider value={{ messages, setMessages }}>
               <Chat user={friendList[friendIndex]?.user} />
             </MessagesContext.Provider>
