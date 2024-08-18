@@ -9,4 +9,7 @@ router.get('/login', getLogin);
 router.post('/login', validateForm, rateLimiter(60, 10), postLogin);
 
 router.post('/register', validateForm, rateLimiter(60, 3), handleRegister);
+
+router.post('/logout', logout);
+
 module.exports = router;

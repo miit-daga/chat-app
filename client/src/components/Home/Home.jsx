@@ -5,6 +5,7 @@ import Chat from "./Chat.jsx";
 import useSocketSetup from "./useSocketSetup.jsx";
 import socketConn from "../../socket.js";
 import { AccountContext } from "../AccountContext.jsx";
+import UserMenu from "./UserMenu.jsx";
 
 export const FriendContext = createContext();
 export const MessagesContext = createContext();
@@ -42,6 +43,7 @@ const Home = () => {
             </MessagesContext.Provider>
           </GridItem>
         </Grid>
+        <UserMenu />
       </SocketContext.Provider>
     </FriendContext.Provider>
   );

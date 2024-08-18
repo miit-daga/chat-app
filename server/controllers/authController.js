@@ -12,14 +12,17 @@ module.exports.getLogin = async (req, res) => {
         if (!token) {
             return res.status(401).json({ loggedIn: false, errorMessage: "Token not provided" });
         }
-        await jwtVerify(token, process.env.JWT_SECRET);
-        res.json({ loggedIn: true, token });
+        const decoded = await jwtVerify(token, process.env.JWT_SECRET);
+        const potentialLogin = await pool.query("SELECT username FROM users WHERE id = $1", [decoded.id]);
+        if (potentialLogin.rowCount === 0) {
+            return res.status(400).json({ loggedIn: false, errorMessage: "User not found" });
+        }
+        res.json({ loggedIn: true, token, username: potentialLogin.rows[0].username });
     } catch (err) {
         console.error("JWT verification failed:", err);
         res.status(401).json({ loggedIn: false, errorMessage: "Invalid token" });
     }
 };
-
 module.exports.postLogin = async (req, res) => {
     try {
         const { username, password } = req.body;
@@ -75,5 +78,25 @@ module.exports.handleRegister = async (req, res) => {
     } catch (err) {
         console.error("Registration failed:", err);
         res.status(500).json({ loggedIn: false, errorMessage: "Try again later!" });
+    }
+};
+
+module.exports.logout = async (req, res) => {
+    try {
+        const token = getJWT(req);
+        if (!token) {
+            return res.status(401).json({ success: false, message: "No token provided" });
+        }
+
+        const decoded = await jwtVerify(token, process.env.JWT_SECRET);
+        await redisClient.hset(`user:${decoded.username}`, "connected", false);
+        const friendList = await redisClient.lrange(`friends:${decoded.username}`, 0, -1);
+        const friendRooms = friendList.map(friend => friend.split('.')[1]);
+        req.io.to(friendRooms).emit("connected", false, decoded.username);
+
+        res.json({ success: true, message: "Logged out successfully" });
+    } catch (err) {
+        console.error("Logout failed:", err);
+        res.status(500).json({ success: false, message: "Logout failed" });
     }
 };

@@ -15,9 +15,12 @@ const io = new Server(httpserver, {
 app.use(helmet());
 app.use(cors(corsConfig));
 app.use(express.json());
+app.use((req, res, next) => {
+    req.io = io;
+    next();
+});
 app.use('/auth', authRouter);
 app.set('trust proxy', 1);
-
 app.get('/', (req, res) => {
     res.json('Hello World');
 })
@@ -28,7 +31,8 @@ io.on('connect', (socket) => {
         addFriend(socket, friendName, cb)
     })
     socket.on("dm", (message) => dm(socket, message))
-    socket.on('disconnect', () => {onDisconnect(socket)
+    socket.on('disconnect', () => {
+        onDisconnect(socket)
     })
 });
 httpserver.listen(3000, () => {
