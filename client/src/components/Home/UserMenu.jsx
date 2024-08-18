@@ -8,6 +8,7 @@ import {
   Avatar,
   Text,
   HStack,
+  useColorModeValue,
 } from "@chakra-ui/react";
 import { ChevronDownIcon } from "@chakra-ui/icons";
 import axios from "axios";
@@ -66,6 +67,9 @@ const UserMenu = () => {
     }
   };
 
+  const bgColor = useColorModeValue("gray.100", "gray.700");
+  const textColor = useColorModeValue("black", "white");
+
   return (
     <Menu>
       <MenuButton
@@ -76,6 +80,9 @@ const UserMenu = () => {
         right="45"
         m="1rem"
         mr="1.5rem"
+        backgroundColor={bgColor}
+        color={textColor}
+        _hover={{ backgroundColor: useColorModeValue("gray.200", "gray.600") }}
       >
         <HStack spacing={2}>
           <Avatar size="sm" />

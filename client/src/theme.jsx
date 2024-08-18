@@ -1,5 +1,6 @@
 import { extendTheme } from "@chakra-ui/react";
-const theme = {
+
+const theme = extendTheme({
   config: {
     initialColorMode: "dark",
     useSystemColorMode: true,
@@ -9,7 +10,7 @@ const theme = {
       body: {
         margin: 0,
         fontFamily:
-          "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',, sans- serif",
+          "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', sans-serif",
       },
       code: {
         fontFamily:
@@ -17,5 +18,16 @@ const theme = {
       },
     },
   },
-};
-export default extendTheme(theme);
+  colors: {
+    light: {
+      background: "gray.100",
+      text: "black",
+    },
+    dark: {
+      background: "gray.700",
+      text: "white",
+    },
+  },
+});
+
+export default theme;
