@@ -6,22 +6,35 @@ import ChatBox from "./ChatBox.jsx";
 const Chat = ({ user }) => {
   const { friendList } = useContext(FriendContext);
   const { messages } = useContext(MessagesContext);
-  const bottomDiv = useRef(null);
+  const bottomDivRefs = useRef([]);
+  if (bottomDivRefs.current.length !== friendList.length) {
+    bottomDivRefs.current = Array(friendList.length)
+      .fill()
+      .map((_, i) => bottomDivRefs.current[i] || React.createRef());
+  }
 
   useEffect(() => {
-    bottomDiv.current?.scrollIntoView({ behavior: "smooth" });
-  });
+    const activeFriendIndex = friendList.findIndex(
+      (friend) => friend.user === user,
+    );
+    if (activeFriendIndex !== -1) {
+      bottomDivRefs.current[activeFriendIndex]?.current?.scrollIntoView({
+        behavior: "smooth",
+      });
+    }
+  }, [messages, friendList, user]);
+
   return friendList.length > 0 ? (
     <VStack h="100%" justify="end">
       <TabPanels overflowY="scroll">
-        {friendList.map((friend) => (
+        {friendList.map((friend, index) => (
           <VStack
             flexDir="column-reverse"
             as={TabPanel}
             key={`chat:${friend.username}`}
             w="100%"
           >
-            <div ref={bottomDiv} />
+            <div ref={bottomDivRefs.current[index]} />
             {messages
               .filter(
                 (msg) => msg.to === friend.user || msg.from === friend.user,
