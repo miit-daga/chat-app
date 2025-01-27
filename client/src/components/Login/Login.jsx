@@ -41,7 +41,7 @@ const Login = () => {
                 navigate("/home");
                 setUser({ ...res.data });
                 localStorage.setItem("token", res.data.token);
-                console.log(res.data);
+                //console.log(res.data);
               } else {
                 setError(
                   res.data.errorMessage || "An error occurred during login",
