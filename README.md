@@ -13,3 +13,4 @@ This application facilitates seamless communication between users in real-time. 
 ## Authentication
 
 The application uses JWT (JSON Web Token) for user authentication, providing secure and stateless authentication. Redis is employed for session management tasks such as tracking connected users, storing chat messages, and enforcing rate limits. This approach ensures robust security and efficient real-time communication.
+.
